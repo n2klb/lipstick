@@ -92,6 +92,8 @@ protected:
     virtual void wheelEvent(QWheelEvent *event);
     virtual void touchEvent(QTouchEvent *event);
 
+    void setParentView(QWaylandSurfaceView *view) override;
+
 signals:
     void userDataChanged();
     void titleChanged();
@@ -109,6 +111,7 @@ private slots:
     void handleTouchCancel();
     void killProcess();
     void configure();
+    void updateParentBufferScale();
 
 private:
     friend class LipstickCompositor;
@@ -146,6 +149,7 @@ private:
     QVector<QQuickItem *> m_refs;
     QRectF m_sourceRect;
     qreal m_bufferScale;
+    LipstickCompositorWindow *m_parentWindow;
     QRect m_popupArea;
     bool m_isXdg;
 };

@@ -44,6 +44,7 @@ LipstickCompositorWindow::LipstickCompositorWindow(int windowId, const QString &
     , m_interceptingTouch(false)
     , m_mapped(false)
     , m_focusOnTouch(false)
+    , m_parentWindow(nullptr)
     , m_isXdg(false)
 {
     setFlags(QQuickItem::ItemIsFocusScope | flags());
@@ -508,6 +509,24 @@ void LipstickCompositorWindow::handleTouchCancel()
     m_interceptingTouch = false;
 }
 
+void LipstickCompositorWindow::setParentView(QWaylandSurfaceView *view)
+{
+    if (m_parentWindow) {
+        disconnect(m_parentWindow, &LipstickCompositorWindow::bufferScaleChanged,
+                   this, &LipstickCompositorWindow::updateParentBufferScale);
+    }
+
+    m_parentWindow = static_cast<LipstickCompositorWindow *>(view);
+
+    if (m_parentWindow) {
+        updateParentBufferScale();
+        connect(m_parentWindow, &LipstickCompositorWindow::bufferScaleChanged,
+                this, &LipstickCompositorWindow::updateParentBufferScale);
+    }
+
+    QWaylandSurfaceItem::setParentView(view);
+}
+
 void LipstickCompositorWindow::terminateProcess(int killTimeout)
 {
     pid_t pid = processId();
@@ -568,6 +587,11 @@ void LipstickCompositorWindow::configure()
     }
 
     emit committed();
+}
+
+void LipstickCompositorWindow::updateParentBufferScale()
+{
+    setBufferScale(m_parentWindow->bufferScale());
 }
 
 qreal LipstickCompositorWindow::bufferScale() const
